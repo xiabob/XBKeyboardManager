@@ -22,7 +22,7 @@ public class XBKeyboardManager {
      适用于所有的输入视图(textField、textview)都在ViewController的view中
      
      - parameter allInputViews: 当前界面所有的输入视图
-
+     
      */
     init(allInputViews: UIView...) {
         inputViews.removeAll()
@@ -62,6 +62,7 @@ public class XBKeyboardManager {
         self.commonScrollView = commonScrollView
         
         inputViews.removeAll()
+        
         getAllTextInputSubViews(subviews)
         
         addNotification()
@@ -102,11 +103,13 @@ public class XBKeyboardManager {
             contentSizeHieghts.append(commonScrollView!.contentSize.height)
             contentInsetBottoms.append(commonScrollView!.contentInset.bottom)
             
-            //同时改变contentOffset和size，scrollview的行为将变得很奇怪，比如：contentOffset将被reset。为了解决这个问题，办法可以是重新设置contentInset
+            //scrollview的contentOffset超过界限会发生回弹效果（因为超过了这个边界值后，scrollview还在滚动），这时contentOffset可能会被reset。为了解决这个问题，办法可以是重新设置contentInset
             //http://stackoverflow.com/questions/19311045/uiscrollview-animation-of-height-and-contentoffset-jumps-content-from-bottom
             heightOffset = pointYs.first! + offset - (contentSizeHieghts.first! - commonScrollView!.bounds.size.height)
-            if rect.size.height > 0 { //第三方输入法
+            if rect.size.height > 0 && heightOffset > 0 { //rect.size.height > 0第三方输入法
                 self.commonScrollView?.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: heightOffset, right: 0)
+            } else {
+                self.commonScrollView?.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: self.contentInsetBottoms.first!, right: 0)
             }
         } else {
             guard let pointY = viewController?.view.frame.origin.y else {return}
@@ -116,15 +119,15 @@ public class XBKeyboardManager {
         //输入视图被遮挡了
         if offset > 0 {
             UIView.animateWithDuration(animationInfos.duration,
-                                                delay: 0,
-                                                options: animationInfos.options.union(.BeginFromCurrentState) ,
-                                                animations: { [unowned self] in
-                                                    if hasCommonScrollView {
-                                                        self.commonScrollView?.contentOffset.y = self.pointYs.first! + offset
-                                                    } else {
-                                                        self.viewController?.view.frame.origin.y = self.pointYs.first! - offset
-                                                    } },
-                                                completion: nil)
+                                       delay: 0,
+                                       options: animationInfos.options.union(.BeginFromCurrentState) ,
+                                       animations: { [unowned self] in
+                                        if hasCommonScrollView {
+                                            self.commonScrollView?.contentOffset.y = self.pointYs.first! + offset
+                                        } else {
+                                            self.viewController?.view.frame.origin.y = self.pointYs.first! - offset
+                                        } },
+                                       completion: nil)
             
             
         }
@@ -134,16 +137,16 @@ public class XBKeyboardManager {
         guard let userInfo = notification.userInfo else {return}
         let animationInfos = getKeyboardAnimationInfos(userInfo)
         UIView.animateWithDuration(animationInfos.duration,
-                                            delay: 0,
-                                            options: animationInfos.options.union(.BeginFromCurrentState),
-                                            animations: { [unowned self] in
-                                                if self.commonScrollView != nil {
-                                                    self.commonScrollView?.contentOffset.y = self.pointYs.first!
-                                                    self.commonScrollView?.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: self.contentInsetBottoms.first!, right: 0)
-                                                } else {
-                                                    self.viewController?.view.frame.origin.y = self.pointYs.first!
-                                                } },
-                                            completion: nil)
+                                   delay: 0,
+                                   options: animationInfos.options.union(.BeginFromCurrentState),
+                                   animations: { [unowned self] in
+                                    if self.commonScrollView != nil {
+                                        self.commonScrollView?.contentOffset.y = self.pointYs.first!
+                                        self.commonScrollView?.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: self.contentInsetBottoms.first!, right: 0)
+                                    } else {
+                                        self.viewController?.view.frame.origin.y = self.pointYs.first!
+                                    } },
+                                   completion: nil)
         
         pointYs.removeAll()
         contentSizeHieghts.removeAll()
@@ -158,10 +161,10 @@ public class XBKeyboardManager {
         guard let view = getFirstResponder() else {return CGPoint.zero}
         guard let vc = viewController else {return CGPoint.zero}
         let superView: UIView! = view.superview ?? vc.view
-
+        
         var point = superView.convertPoint(view.frame.origin,
-                                     toView: vc.view)
-
+                                           toView: vc.view.window)
+        
         if view is UITextField {
             //为了美观多留出一点空白
             point.y += (view.bounds.size.height + 12)
@@ -195,6 +198,15 @@ public class XBKeyboardManager {
     }
     
     private func getFirstResponder() -> UIView? {
+        if commonScrollView is UITableView {
+            let view = getTableViewFirstResponder(commonScrollView!)
+            if view != nil {
+                inputViews.removeAll()
+                inputViews.append(view!)
+            }
+            return view
+        }
+        
         for view in inputViews {
             if view.isFirstResponder() {
                 return view
@@ -204,7 +216,28 @@ public class XBKeyboardManager {
         return nil
     }
     
+    //UITableView的内容可能会变动，需要实时获取
+    private func getTableViewFirstResponder(view: UIView) -> UIView? {
+        if view.isFirstResponder() {
+            return view
+        }
+        
+        for subview in view.subviews {
+            let firstResponder = getTableViewFirstResponder(subview)
+            if firstResponder != nil {
+                return firstResponder
+            }
+        }
+        
+        return nil
+    }
+    
     private func getAllTextInputSubViews(subviews: [UIView]) {
+        //UITableView的内容可能会变动
+        if commonScrollView is UITableView {
+            return
+        }
+        
         for view in subviews {
             if view is UITextInput {
                 inputViews.append(view)
