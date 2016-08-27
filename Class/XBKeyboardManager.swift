@@ -98,7 +98,7 @@ public class XBKeyboardManager {
         let animationInfos = getKeyboardAnimationInfos(userInfo)
         
         var heightOffset: CGFloat = 0
-        if hasCommonScrollView {
+        if hasCommonScrollView { //对于第三方键盘而言，UIKeyboardWillShowNotification通知会触发多次
             pointYs.append(commonScrollView!.contentOffset.y)
             contentSizeHieghts.append(commonScrollView!.contentSize.height)
             contentInsetBottoms.append(commonScrollView!.contentInset.bottom)
