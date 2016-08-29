@@ -10,6 +10,7 @@ import UIKit
 import Foundation
 
 public class XBKeyboardManager {
+    //MARK: private property
     private var inputViews = [UIView]()
     private var commonScrollView: UIScrollView?
     private weak var viewController: UIViewController? { return getViewContoller() }
@@ -17,6 +18,16 @@ public class XBKeyboardManager {
     private var contentSizeHieghts = [CGFloat]()
     private var contentInsetBottoms = [CGFloat]()
     private var targetInputViewPoint = [CGPoint]()
+    
+    //MARK: public property
+    
+    /// UIKeyboardWillShowNotification时为true，UIKeyboardDidShowNotification时为false
+    public var isKeyboardWillShow = false
+    /// UIKeyboardWillHideNotification时为true，UIKeyboardDidHideNotification时为false
+    public var isKeyboardWillHide = false
+    
+    
+    //MARK: life methods
     
     /**
      适用于所有的输入视图(textField、textview)都在ViewController的view中
@@ -74,16 +85,22 @@ public class XBKeyboardManager {
     
     //MARK: - notification
     private func addNotification() {
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(XBKeyboardManager.showKeyboard), name: UIKeyboardWillShowNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(XBKeyboardManager.hideKeyboard), name: UIKeyboardWillHideNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(XBKeyboardManager.willShowKeyboard), name: UIKeyboardWillShowNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(XBKeyboardManager.didShowKeyboard), name: UIKeyboardDidShowNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(XBKeyboardManager.willHideKeyboard), name: UIKeyboardWillHideNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(XBKeyboardManager.didHideKeyboard), name: UIKeyboardDidHideNotification, object: nil)
     }
     
     private func removeNotification() {
         NSNotificationCenter.defaultCenter().removeObserver(self, name: UIKeyboardWillShowNotification, object: nil)
+        NSNotificationCenter.defaultCenter().removeObserver(self, name: UIKeyboardDidShowNotification, object: nil)
         NSNotificationCenter.defaultCenter().removeObserver(self, name: UIKeyboardWillHideNotification, object: nil)
+        NSNotificationCenter.defaultCenter().removeObserver(self, name: UIKeyboardDidHideNotification, object: nil)
     }
     
-    @objc private func showKeyboard(notification: NSNotification) {
+    @objc private func willShowKeyboard(notification: NSNotification) {
+        isKeyboardWillShow = true
+        
         guard let userInfo = notification.userInfo else {return}
         //键盘的frame数据
         guard let rect = (userInfo[UIKeyboardFrameEndUserInfoKey] as? NSValue)?.CGRectValue() else {return}
@@ -133,7 +150,13 @@ public class XBKeyboardManager {
         }
     }
     
-    @objc private func hideKeyboard(notification: NSNotification) {
+    @objc private func didShowKeyboard(notification: NSNotification) {
+        isKeyboardWillShow = false;
+    }
+    
+    @objc private func willHideKeyboard(notification: NSNotification) {
+        isKeyboardWillHide = true
+        
         guard let userInfo = notification.userInfo else {return}
         let animationInfos = getKeyboardAnimationInfos(userInfo)
         UIView.animateWithDuration(animationInfos.duration,
@@ -154,6 +177,9 @@ public class XBKeyboardManager {
         targetInputViewPoint.removeAll()
     }
     
+    @objc private func didHideKeyboard(notification: NSNotification) {
+        isKeyboardWillHide = false
+    }
     
     //MARK: - private utils methods
     
