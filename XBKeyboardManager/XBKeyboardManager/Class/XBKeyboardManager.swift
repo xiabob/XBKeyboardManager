@@ -163,9 +163,8 @@ public class XBKeyboardManager {
                                    delay: 0,
                                    options: animationInfos.options.union(.BeginFromCurrentState),
                                    animations: { [unowned self] in
+                                    if self.pointYs.count == 0 {return} //数组可能为空
                                     if self.commonScrollView != nil {
-                                        if self.pointYs.count == 0 {return} //数组可能为空
-                                        
                                         self.commonScrollView?.contentOffset.y = self.pointYs.first!
                                         self.commonScrollView?.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: self.contentInsetBottoms.first!, right: 0)
                                     } else {
