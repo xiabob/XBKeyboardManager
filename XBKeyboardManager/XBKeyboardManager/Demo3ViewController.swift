@@ -10,7 +10,7 @@ import UIKit
 
 class Demo3ViewController: UIViewController {
     @IBOutlet weak var scrollview: UIScrollView!
-    private var manager: XBKeyboardManager?
+    fileprivate var manager: XBKeyboardManager?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -24,11 +24,11 @@ class Demo3ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     
-    @IBAction func endEdit(sender: AnyObject) {
+    @IBAction func endEdit(_ sender: AnyObject) {
         view.endEditing(true)
     }
-    @IBAction func dismiss(sender: AnyObject) {
-        dismissViewControllerAnimated(true, completion: nil)
+    @IBAction func dismiss(_ sender: AnyObject) {
+        self.dismiss(animated: true, completion: nil)
     }
 
 }

@@ -11,7 +11,7 @@ import UIKit
 class Demo2ViewController: UIViewController {
 
     @IBOutlet weak var scrollView: UIScrollView!
-    private var manager: XBKeyboardManager?
+    fileprivate var manager: XBKeyboardManager?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -24,7 +24,7 @@ class Demo2ViewController: UIViewController {
         
     }
     
-    override func viewDidAppear(animated: Bool) {
+    override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
     }
     
@@ -37,7 +37,7 @@ class Demo2ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     
-    @IBAction func endEdit(sender: AnyObject) {
+    @IBAction func endEdit(_ sender: AnyObject) {
         view.endEditing(true)
     }
 

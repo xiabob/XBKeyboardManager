@@ -9,22 +9,22 @@
 import UIKit
 import Foundation
 
-public class XBKeyboardManager {
+open class XBKeyboardManager {
     //MARK: private property
-    private var inputViews = [UIView]()
-    private var commonScrollView: UIScrollView?
-    private weak var viewController: UIViewController? { return getViewContoller() }
-    private var pointYs = [CGFloat]()
-    private var contentSizeHieghts = [CGFloat]()
-    private var contentInsetBottoms = [CGFloat]()
-    private var targetInputViewPoint = [CGPoint]()
+    fileprivate var inputViews = [UIView]()
+    fileprivate var commonScrollView: UIScrollView?
+    fileprivate weak var viewController: UIViewController? { return getViewContoller() }
+    fileprivate var pointYs = [CGFloat]()
+    fileprivate var contentSizeHieghts = [CGFloat]()
+    fileprivate var contentInsetBottoms = [CGFloat]()
+    fileprivate var targetInputViewPoint = [CGPoint]()
     
     //MARK: public property
     
     /// UIKeyboardWillShowNotification时为true，UIKeyboardDidShowNotification时为false
-    public var isKeyboardWillShow = false
+    open var isKeyboardWillShow = false
     /// UIKeyboardWillHideNotification时为true，UIKeyboardDidHideNotification时为false
-    public var isKeyboardWillHide = false
+    open var isKeyboardWillHide = false
     
     
     //MARK: life methods
@@ -84,26 +84,26 @@ public class XBKeyboardManager {
     }
     
     //MARK: - notification
-    private func addNotification() {
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(XBKeyboardManager.willShowKeyboard), name: UIKeyboardWillShowNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(XBKeyboardManager.didShowKeyboard), name: UIKeyboardDidShowNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(XBKeyboardManager.willHideKeyboard), name: UIKeyboardWillHideNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(XBKeyboardManager.didHideKeyboard), name: UIKeyboardDidHideNotification, object: nil)
+    fileprivate func addNotification() {
+        NotificationCenter.default.addObserver(self, selector: #selector(XBKeyboardManager.willShowKeyboard), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(XBKeyboardManager.didShowKeyboard), name: NSNotification.Name.UIKeyboardDidShow, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(XBKeyboardManager.willHideKeyboard), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(XBKeyboardManager.didHideKeyboard), name: NSNotification.Name.UIKeyboardDidHide, object: nil)
     }
     
-    private func removeNotification() {
-        NSNotificationCenter.defaultCenter().removeObserver(self, name: UIKeyboardWillShowNotification, object: nil)
-        NSNotificationCenter.defaultCenter().removeObserver(self, name: UIKeyboardDidShowNotification, object: nil)
-        NSNotificationCenter.defaultCenter().removeObserver(self, name: UIKeyboardWillHideNotification, object: nil)
-        NSNotificationCenter.defaultCenter().removeObserver(self, name: UIKeyboardDidHideNotification, object: nil)
+    fileprivate func removeNotification() {
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIKeyboardDidShow, object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIKeyboardDidHide, object: nil)
     }
     
-    @objc private func willShowKeyboard(notification: NSNotification) {
+    @objc fileprivate func willShowKeyboard(_ notification: Notification) {
         isKeyboardWillShow = true
         
-        guard let userInfo = notification.userInfo else {return}
+        guard let userInfo = (notification as NSNotification).userInfo else {return}
         //键盘的frame数据
-        guard let rect = (userInfo[UIKeyboardFrameEndUserInfoKey] as? NSValue)?.CGRectValue() else {return}
+        guard let rect = (userInfo[UIKeyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue else {return}
         
         var hasCommonScrollView = false
         if commonScrollView != nil {
@@ -135,9 +135,9 @@ public class XBKeyboardManager {
         
         //输入视图被遮挡了
         if offset > 0 {
-            UIView.animateWithDuration(animationInfos.duration,
+            UIView.animate(withDuration: animationInfos.duration,
                                        delay: 0,
-                                       options: animationInfos.options.union(.BeginFromCurrentState) ,
+                                       options: animationInfos.options.union(.beginFromCurrentState) ,
                                        animations: { [unowned self] in
                                         if hasCommonScrollView {
                                             self.commonScrollView?.contentOffset.y = self.pointYs.first! + offset
@@ -150,18 +150,18 @@ public class XBKeyboardManager {
         }
     }
     
-    @objc private func didShowKeyboard(notification: NSNotification) {
+    @objc fileprivate func didShowKeyboard(_ notification: Notification) {
         isKeyboardWillShow = false;
     }
     
-    @objc private func willHideKeyboard(notification: NSNotification) {
+    @objc fileprivate func willHideKeyboard(_ notification: Notification) {
         isKeyboardWillHide = true
         
-        guard let userInfo = notification.userInfo else {return}
+        guard let userInfo = (notification as NSNotification).userInfo else {return}
         let animationInfos = getKeyboardAnimationInfos(userInfo)
-        UIView.animateWithDuration(animationInfos.duration,
+        UIView.animate(withDuration: animationInfos.duration,
                                    delay: 0,
-                                   options: animationInfos.options.union(.BeginFromCurrentState),
+                                   options: animationInfos.options.union(.beginFromCurrentState),
                                    animations: { [unowned self] in
                                     if self.pointYs.count == 0 {return} //数组可能为空
                                     if self.commonScrollView != nil {
@@ -178,19 +178,19 @@ public class XBKeyboardManager {
         targetInputViewPoint.removeAll()
     }
     
-    @objc private func didHideKeyboard(notification: NSNotification) {
+    @objc fileprivate func didHideKeyboard(_ notification: Notification) {
         isKeyboardWillHide = false
     }
     
     //MARK: - private utils methods
     
-    private func getTargetInputViewPoint() -> CGPoint {
+    fileprivate func getTargetInputViewPoint() -> CGPoint {
         guard let view = getFirstResponder() else {return CGPoint.zero}
         guard let vc = viewController else {return CGPoint.zero}
         let superView: UIView! = view.superview ?? vc.view
         
-        var point = superView.convertPoint(view.frame.origin,
-                                           toView: vc.view.window)
+        var point = superView.convert(view.frame.origin,
+                                           to: vc.view.window)
         
         if view is UITextField {
             //为了美观多留出一点空白
@@ -202,29 +202,29 @@ public class XBKeyboardManager {
         return point
     }
     
-    private func getKeyboardAnimationInfos(userInfo : [NSObject : AnyObject]) -> (duration: NSTimeInterval, options: UIViewAnimationOptions) {
+    fileprivate func getKeyboardAnimationInfos(_ userInfo : [AnyHashable: Any]) -> (duration: TimeInterval, options: UIViewAnimationOptions) {
         let duration = (userInfo[UIKeyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0.25
-        let number = (userInfo[UIKeyboardAnimationCurveUserInfoKey] as? NSNumber)?.unsignedLongValue ?? 7  // 7 << 16
+        let number = (userInfo[UIKeyboardAnimationCurveUserInfoKey] as? NSNumber)?.uintValue ?? 7  // 7 << 16
         let options = UIViewAnimationOptions(rawValue: number)
         return (duration, options)
     }
     
-    private func getViewContoller() -> UIViewController? {
+    fileprivate func getViewContoller() -> UIViewController? {
         guard let view = inputViews.first else {return nil}
         
-        guard var target = view.nextResponder() else {return nil}
-        while target.nextResponder() != nil {
+        guard var target = view.next else {return nil}
+        while target.next != nil {
             if target is UIViewController {
                 return target as? UIViewController
             }
             
-            target = target.nextResponder()!
+            target = target.next!
         }
         
         return nil
     }
     
-    private func getFirstResponder() -> UIView? {
+    fileprivate func getFirstResponder() -> UIView? {
         if commonScrollView is UITableView {
             let view = getTableViewFirstResponder(commonScrollView!)
             if view != nil {
@@ -235,7 +235,7 @@ public class XBKeyboardManager {
         }
         
         for view in inputViews {
-            if view.isFirstResponder() {
+            if view.isFirstResponder {
                 return view
             }
         }
@@ -244,8 +244,8 @@ public class XBKeyboardManager {
     }
     
     //UITableView的内容可能会变动，需要实时获取
-    private func getTableViewFirstResponder(view: UIView) -> UIView? {
-        if view.isFirstResponder() {
+    fileprivate func getTableViewFirstResponder(_ view: UIView) -> UIView? {
+        if view.isFirstResponder {
             return view
         }
         
@@ -259,7 +259,7 @@ public class XBKeyboardManager {
         return nil
     }
     
-    private func getAllTextInputSubViews(subviews: [UIView]) {
+    fileprivate func getAllTextInputSubViews(_ subviews: [UIView]) {
         //UITableView的内容可能会变动
         if commonScrollView is UITableView {
             return

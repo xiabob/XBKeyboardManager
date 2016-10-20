@@ -10,7 +10,7 @@ import UIKit
 
 
 class Demo1ViewController: UIViewController {
-    private var manager: XBKeyboardManager?
+    fileprivate var manager: XBKeyboardManager?
 
     @IBOutlet weak var field1: UITextField!
     @IBOutlet weak var field2: UITextField!
@@ -25,7 +25,7 @@ class Demo1ViewController: UIViewController {
 //        manager = XBKeyboardManager(subviews: view.subviews , commonScrollView: nil)
     }
     
-    override func viewDidAppear(animated: Bool) {
+    override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
     }
     
@@ -38,7 +38,7 @@ class Demo1ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
-    @IBAction func endEdit(sender: AnyObject) {
+    @IBAction func endEdit(_ sender: AnyObject) {
         view.endEditing(true)
     }
 
